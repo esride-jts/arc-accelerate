@@ -1,4 +1,8 @@
 {
     "cmake.sourceDirectory": "${workspaceFolder}/src",
-    "cmake.configureOnOpen": true
+    "cmake.configureOnOpen": true,
+    "files.associations": {
+        "*.pyt": "python",
+        "xstring": "cpp"
+    }
 }

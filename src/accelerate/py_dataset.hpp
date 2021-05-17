@@ -15,22 +15,22 @@
 //   You should have received a copy of the GNU Lesser General Public License
 //   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "py_accelerate.hpp"
-#include "py_dataset.hpp"
+#ifndef DATASET_H
+#define DATASET_H
 
-namespace py = pybind11;
-namespace da = accelerate::da;
+#include <string>
+#include <vector>
 
-PYBIND11_MODULE(accelerate, m) {
-    m.doc() = "Accelerates the development of Geoprocessing tools using C++.";
-    
-    py::class_<da::Dataset>(m, "Dataset")
-        .def(py::init<>())
-        .def("load", &da::Dataset::load, "Loads the table/feature class by using the specified path.")
-        .def("__repr__",
-            [] (const da::Dataset& da)
-            {
-                return "Dataset representing a table or feature class.";
-            })
-        ;
+namespace accelerate {
+namespace da {
+
+class Dataset {
+
+public:
+    void load(const std::string& path, const std::vector<std::string>& field_names, const std::string& where_clause);
+};
+
 }
+}
+
+#endif
