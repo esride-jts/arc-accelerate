@@ -18,8 +18,13 @@
 #ifndef DATASET_H
 #define DATASET_H
 
+#include <map>
 #include <string>
 #include <vector>
+
+namespace pybind11 {
+    class object;
+}
 
 namespace accelerate {
 namespace da {
@@ -27,7 +32,11 @@ namespace da {
 class Dataset {
 
 public:
-    void load(const std::string& path, const std::vector<std::string>& field_names, const std::string& where_clause);
+    void load(const std::string& in_table, const std::vector<std::string>& field_names, const std::string& where_clause);
+
+private:
+    std::map<size_t, std::string> field_types;
+    std::vector<pybind11::object> rows;
 };
 
 }

@@ -31,6 +31,9 @@ PYBIND11_MODULE(accelerate, m) {
             [] (const da::Dataset& da)
             {
                 return "Dataset representing a table or feature class.";
-            })
-        ;
+            });
+
+    
+    // Load arcpy...
+    py::module::import("arcpy");
 }

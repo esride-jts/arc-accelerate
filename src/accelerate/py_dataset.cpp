@@ -16,6 +16,9 @@
 //   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "py_dataset.hpp"
+#include "py_accelerate.hpp"
+
+namespace py = pybind11;
 
 using namespace std;
 
@@ -23,9 +26,48 @@ namespace accelerate {
     
     namespace da {
 
-        void Dataset::load(const std::string& path, const std::vector<std::string>& field_names, const std::string& where_clause)
+        void Dataset::load(const string& in_table, const vector<string>& field_names, const string& where_clause="1=1")
         {
-            // TODO Use a search cursor and load all records into the memory
+            // Use a search cursor and load all records into the memory
+            py::object da = py::module::import("arcpy.da");
+            py::object SearchCursor = da.attr("SearchCursor");
+            py::object search_cursor = SearchCursor(in_table, field_names, where_clause);
+            bool determine_value_types = true;
+            while (true)
+            {
+                try
+                {
+                    py::object row = search_cursor.attr("next")();
+                    if (determine_value_types)
+                    {
+                        py::tuple values = row;
+                        size_t field_index = 0;
+                        for (auto const value : values)
+                        {
+                            PyTypeObject* value_type = Py_TYPE(value.ptr());
+                            field_types.insert({
+                                field_index++,
+                                value_type->tp_name
+                            });
+                        }
+                        determine_value_types = false;
+                    }
+                    rows.push_back(row);
+                }
+                catch (const py::error_already_set& err)
+                {
+                    if (err.matches(PyExc_StopIteration))
+                    {
+                        // Expected at the end of the cursor!
+                        break;
+                    }
+                    else
+                    {
+                        // Rethrow unexpected error
+                        throw;
+                    }
+                }
+            }
         }
 
     }
