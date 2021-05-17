@@ -34,9 +34,12 @@ class Dataset {
 public:
     void load(const std::string& in_table, const std::vector<std::string>& field_names, const std::string& where_clause);
 
+    pybind11::object to_pandas() const;
+
 private:
-    std::map<size_t, std::string> field_types;
-    std::vector<pybind11::object> rows;
+    std::vector<std::string> _field_names;
+    std::map<size_t, std::string> _field_types;
+    std::vector<pybind11::object> _rows;
 };
 
 }

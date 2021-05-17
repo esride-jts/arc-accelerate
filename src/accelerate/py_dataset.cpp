@@ -32,6 +32,7 @@ namespace accelerate {
             py::object da = py::module::import("arcpy.da");
             py::object SearchCursor = da.attr("SearchCursor");
             py::object search_cursor = SearchCursor(in_table, field_names, where_clause);
+            _field_names = field_names;
             bool determine_value_types = true;
             while (true)
             {
@@ -45,14 +46,14 @@ namespace accelerate {
                         for (auto const value : values)
                         {
                             PyTypeObject* value_type = Py_TYPE(value.ptr());
-                            field_types.insert({
+                            _field_types.insert({
                                 field_index++,
                                 value_type->tp_name
                             });
                         }
                         determine_value_types = false;
                     }
-                    rows.push_back(row);
+                    _rows.push_back(row);
                 }
                 catch (const py::error_already_set& err)
                 {
@@ -68,6 +69,34 @@ namespace accelerate {
                     }
                 }
             }
+        }
+
+        py::object Dataset::to_pandas() const
+        {
+            vector<py::dict> rows_as_dict;
+            rows_as_dict.reserve(_rows.size());
+            for (const py::object& row : _rows)
+            {
+                py::dict row_as_dict;
+                size_t field_index = 0;
+                for (auto const& value : row)
+                {
+                    if (_field_names.size() == field_index)
+                    {
+                        break;
+                    }
+
+                    string field_name = _field_names[field_index];
+                    row_as_dict[field_name.c_str()] = value;
+
+                    field_index++;
+                }
+
+                rows_as_dict.push_back(row_as_dict);
+            }
+
+            py::object pandas = py::module::import("pandas");
+	        return pandas.attr("DataFrame").attr("from_dict")(rows_as_dict);
         }
 
     }
