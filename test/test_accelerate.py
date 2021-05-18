@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from accelerate import Dataset
+from accelerate import Dataset, Workspace
 
 class TestAccelerateDataset(unittest.TestCase):
 
@@ -25,6 +25,17 @@ class TestAccelerateDataset(unittest.TestCase):
         
         out_table = '{0}/ACLED_Empty'.format(os.environ['accelerate_sample_gdb'])
         dataset.write(out_table, ['OID@', 'event_type'])
+
+
+class TestAccelerateWorkspace(unittest.TestCase):
+
+    def test_create_table(self):
+        out_path = os.environ['accelerate_sample_gdb']
+        out_table = 'Table_New'
+        workspace = Workspace()
+        table = workspace.create_table(out_path, out_table, True)
+        self.assertIsNotNone(table, 'The table must not be none!')
+
 
 
 if __name__ == '__main__':

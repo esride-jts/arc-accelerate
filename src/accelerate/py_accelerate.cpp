@@ -17,9 +17,13 @@
 
 #include "py_accelerate.hpp"
 #include "py_dataset.hpp"
+#include "py_workspace.hpp"
 
 namespace py = pybind11;
 namespace da = accelerate::da;
+namespace mg = accelerate::management;
+
+using namespace std;
 
 PYBIND11_MODULE(accelerate, m) {
     m.doc() = "Accelerates the development of Geoprocessing tools using C++.";
@@ -30,9 +34,26 @@ PYBIND11_MODULE(accelerate, m) {
         .def("write", &da::Dataset::write, "Writes the table/feature class by using the specified path.")
         .def("to_pandas", &da::Dataset::to_pandas, "Creates a new pandas Dataframe containing all rows/featurs of this dataset.")
         .def("__repr__",
-            [] (const da::Dataset& da)
+            [] (const da::Dataset&)
             {
                 return "Dataset representing a table or feature class.";
+            });
+
+    py::class_<mg::Table>(m, "Table")
+        .def(py::init<string, string>())
+        .def("__repr__",
+            [] (const mg::Table&)
+            {
+                return "Table representing a table from a workspace.";
+            });
+
+    py::class_<mg::Workspace>(m, "Workspace")
+        .def(py::init<>())
+        .def("create_table", &mg::Workspace::create_table, "Creates a new table by using the specified path.")
+        .def("__repr__",
+            [] (const mg::Workspace&)
+            {
+                return "Workspace representing a local folder or geodatabase.";
             });
 
     
