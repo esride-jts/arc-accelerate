@@ -18,6 +18,8 @@
 #include "py_dataset.hpp"
 #include "py_accelerate.hpp"
 
+#include <algorithm>
+
 namespace py = pybind11;
 
 using namespace std;
@@ -26,7 +28,7 @@ namespace accelerate {
     
     namespace da {
 
-        void Dataset::load(const string& in_table, const vector<string>& field_names, const string& where_clause="1=1")
+        void Dataset::read(const string& in_table, const vector<string>& field_names, const string& where_clause="1=1")
         {
             // Use a search cursor and load all records into the memory
             py::object da = py::module::import("arcpy.da");
@@ -71,6 +73,40 @@ namespace accelerate {
             }
         }
 
+        void Dataset::write(const string& out_table, const vector<string>& out_field_names)
+        {
+            // Use an insert cursor to write all records into the table
+            py::object da = py::module::import("arcpy.da");
+            py::object InsertCursor = da.attr("InsertCursor");
+            vector<size_t> field_indices;
+            vector<string> validated_out_field_names;
+            for (const string& out_field_name : out_field_names)
+            {
+                auto field_pos = find(_field_names.begin(), _field_names.end(), out_field_name);
+                if (_field_names.end() != field_pos)
+                {
+                    size_t field_index = distance(_field_names.begin(), field_pos);
+                    field_indices.push_back(field_index);
+                    validated_out_field_names.push_back(out_field_name);
+                }
+                else
+                {
+                    // TODO: Field not found exception?
+                }
+            }
+
+            py::object insert_cursor = InsertCursor(out_table, validated_out_field_names);
+            for (const py::object& row : _rows)
+            {
+                py::tuple values = row;
+                
+                // TODO: Restrict out fields
+                //values.operator[]
+                
+                insert_cursor.attr("insertRow")(values);
+            }
+        }
+
         py::object Dataset::to_pandas() const
         {
             vector<py::dict> rows_as_dict;
@@ -96,7 +132,7 @@ namespace accelerate {
             }
 
             py::object pandas = py::module::import("pandas");
-	        return pandas.attr("DataFrame").attr("from_dict")(rows_as_dict);
+            return pandas.attr("DataFrame").attr("from_dict")(rows_as_dict);
         }
 
     }

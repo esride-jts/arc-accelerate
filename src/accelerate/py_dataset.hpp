@@ -32,7 +32,9 @@ namespace da {
 class Dataset {
 
 public:
-    void load(const std::string& in_table, const std::vector<std::string>& field_names, const std::string& where_clause);
+    void read(const std::string& in_table, const std::vector<std::string>& field_names, const std::string& where_clause);
+
+    void write(const std::string& out_table, const std::vector<std::string>& out_field_names);
 
     pybind11::object to_pandas() const;
 

@@ -26,7 +26,8 @@ PYBIND11_MODULE(accelerate, m) {
     
     py::class_<da::Dataset>(m, "Dataset")
         .def(py::init<>())
-        .def("load", &da::Dataset::load, "Loads the table/feature class by using the specified path.")
+        .def("read", &da::Dataset::read, "Reads the table/feature class by using the specified path.")
+        .def("write", &da::Dataset::write, "Writes the table/feature class by using the specified path.")
         .def("to_pandas", &da::Dataset::to_pandas, "Creates a new pandas Dataframe containing all rows/featurs of this dataset.")
         .def("__repr__",
             [] (const da::Dataset& da)
