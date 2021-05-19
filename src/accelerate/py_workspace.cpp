@@ -75,17 +75,49 @@ namespace accelerate {
             py::object env = arcpy.attr("env");
             env.attr("workspace") = _workspace_path;
             
-            py::list field_infos(fields.size());
+            //py::list field_infos(fields.size());
+            vector<vector<string>> field_infos;//(fields.size());
             for_each(fields.begin(), fields.end(), [&] (const Field& field) {
-                py::list field_info(2);
-                field_info[0] = field.name();
-                field_info[1] = field.field_type();
-                field_infos.append(field_info);
+                //py::list field_info(2);
+                //field_info[0] = field.name();
+                //field_info[1] = field.field_type();
+                vector<string> field_info;//(2);
+                field_info.push_back(field.name());
+                
+                // Special field types are expected
+                // Text | Float | Double | Short | Long | Date | BLOB | Raster | GUID
+                string field_type = field.field_type();
+                if (0 == field_type.compare("String"))
+                {
+                    field_info.push_back("Text");
+                }
+                else if (0 == field_type.compare("Single"))
+                {
+                    field_info.push_back("Float");
+                }
+                else if (0 == field_type.compare("SmallInteger"))
+                {
+                    field_info.push_back("Short");
+                }
+                else if (0 == field_type.compare("Integer"))
+                {
+                    field_info.push_back("Long");
+                }
+                else if (0 == field_type.compare("Guid"))
+                {
+                    field_info.push_back("GUID");
+                }
+                else
+                {
+                    field_info.push_back(field.field_type());
+                }
+                //field_infos.append(field_info);
+                field_infos.push_back(field_info);
             });
 
             // If no error is thrown the fields should be added
             py::object management = arcpy.attr("management");
-            py::object AddFields = arcpy.attr("AddFields");
+            py::object AddFields = management.attr("AddFields");
             AddFields(_table_name, field_infos);
 
             _fields = fields;

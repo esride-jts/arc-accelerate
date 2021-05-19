@@ -23,8 +23,9 @@ class TestAccelerateDataset(unittest.TestCase):
         dataset = Dataset()
         dataset.read(in_table, ['OID@', 'event_type'], '1=1')
         
-        out_table = '{0}/ACLED_Empty'.format(os.environ['accelerate_sample_gdb'])
-        dataset.write(out_table, ['OID@', 'event_type'])
+        out_path = os.environ['accelerate_sample_gdb']
+        out_table = 'ACLED_Empty'
+        dataset.write(out_path, out_table, ['event_type'])
 
 
 class TestAccelerateWorkspace(unittest.TestCase):
