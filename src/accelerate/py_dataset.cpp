@@ -32,31 +32,42 @@ namespace accelerate {
 
         void Dataset::read(const string& in_table, const vector<string>& field_names, const string& where_clause="1=1")
         {
+            // List all fields
+            py::object arcpy = py::module::import("arcpy");
+            py::object ListFields = arcpy.attr("ListFields");
+            py::list py_field_list = ListFields(in_table);
+            vector<string> validated_field_names;
+            _fields.clear();
+            for (auto const py_field : py_field_list)
+            {
+                string field_name = py_field.attr("name").cast<string>();
+                auto field_pos = find(field_names.begin(), field_names.end(), field_name);
+                if (field_names.end() != field_pos)
+                {
+                    // Field name was defined
+                    string field_type = py_field.attr("type").cast<string>();
+                    string field_alias = py_field.attr("aliasName").cast<string>();
+                    size_t field_length = py_field.attr("length").cast<size_t>();
+                    mg::Field field(field_name, field_type);
+                    field.set_alias(field_alias);
+                    field.set_length(field_length);
+                    _fields.push_back(field);  
+
+                    // Field exists for the specified table
+                    validated_field_names.push_back(field_name); 
+                }
+            }
+            // TODO: Field names which do not exists, should lead to exception?
+            
             // Use a search cursor and load all records into the memory
-            py::object da = py::module::import("arcpy.da");
+            py::object da = arcpy.attr("da");
             py::object SearchCursor = da.attr("SearchCursor");
-            py::object search_cursor = SearchCursor(in_table, field_names, where_clause);
-            _field_names = field_names;
-            bool determine_value_types = true;
+            py::object search_cursor = SearchCursor(in_table, validated_field_names, where_clause);
             while (true)
             {
                 try
                 {
                     py::object row = search_cursor.attr("next")();
-                    if (determine_value_types)
-                    {
-                        py::tuple values = row;
-                        size_t field_index = 0;
-                        for (auto const value : values)
-                        {
-                            PyTypeObject* value_type = Py_TYPE(value.ptr());
-                            _field_types.insert({
-                                field_index++,
-                                value_type->tp_name
-                            });
-                        }
-                        determine_value_types = false;
-                    }
                     _rows.push_back(row);
                 }
                 catch (const py::error_already_set& err)
@@ -75,8 +86,10 @@ namespace accelerate {
             }
         }
 
-        void Dataset::write(const string& out_path, const string& out_table, const std::vector<mg::Field>& out_fields)
+        void Dataset::write(const string& out_path, const string& out_table, const std::vector<std::string>& out_fields)
         {
+            
+
             // Create a new table
             mg::Workspace workspace(out_path);
 
@@ -124,12 +137,13 @@ namespace accelerate {
                 size_t field_index = 0;
                 for (auto const& value : row)
                 {
-                    if (_field_names.size() == field_index)
+                    if (_fields.size() == field_index)
                     {
                         break;
                     }
 
-                    string field_name = _field_names[field_index];
+                    mg::Field field = _fields[field_index];
+                    string field_name = field.name();
                     row_as_dict[field_name.c_str()] = value;
 
                     field_index++;

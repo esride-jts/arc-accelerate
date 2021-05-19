@@ -38,13 +38,12 @@ namespace accelerate {
         public:
             void read(const std::string& in_table, const std::vector<std::string>& field_names, const std::string& where_clause);
 
-            void write(const std::string& out_path, const std::string& out_table, const std::vector<management::Field>& out_fields);
+            void write(const std::string& out_path, const std::string& out_table, const std::vector<std::string>& out_fields);
 
             pybind11::object to_pandas() const;
 
         private:
-            std::vector<std::string> _field_names;
-            std::map<size_t, std::string> _field_types;
+            std::vector<management::Field> _fields;
             std::vector<pybind11::object> _rows;
         };
 
