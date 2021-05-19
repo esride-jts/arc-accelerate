@@ -66,7 +66,12 @@ namespace accelerate {
         class Workspace {
 
             public:
-                Table create_table(const std::string& out_path, const std::string& out_name, bool overwrite);
+                Workspace(const std::string& path);
+
+                Table create_table(const std::string& out_name, bool overwrite);
+
+            private:
+                std::string _path;
         };
     }
 }

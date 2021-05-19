@@ -18,6 +18,8 @@
 #include "py_workspace.hpp"
 #include "py_accelerate.hpp"
 
+#include <algorithm>
+
 namespace py = pybind11;
 
 using namespace std;
@@ -69,22 +71,42 @@ namespace accelerate {
 
         void Table::add_fields(const std::vector<Field>& fields)
         {
+            py::object arcpy = py::module::import("arcpy");
+            py::object env = arcpy.attr("env");
+            env.attr("workspace") = _workspace_path;
+            
+            py::list field_infos(fields.size());
+            for_each(fields.begin(), fields.end(), [&] (const Field& field) {
+                py::list field_info(2);
+                field_info[0] = field.name();
+                field_info[1] = field.field_type();
+                field_infos.append(field_info);
+            });
+
+            // If no error is thrown the fields should be added
+            py::object management = arcpy.attr("management");
+            py::object AddFields = arcpy.attr("AddFields");
+            AddFields(_table_name, field_infos);
+
             _fields = fields;
         }
 
 
 
-        Table Workspace::create_table(const string& out_path, const string& out_name, bool overwrite)
+        Workspace::Workspace(const string& path) : _path(path)
+        {}
+
+        Table Workspace::create_table(const string& out_name, bool overwrite)
         {
             // If no error is thrown the table should be created
             py::object arcpy = py::module::import("arcpy");
             py::object env = arcpy.attr("env");
             env.attr("overwriteOutput") = overwrite;
             py::object CreateTable = arcpy.attr("CreateTable_management");
-            py::object new_table = CreateTable(out_path, out_name);
+            py::object new_table = CreateTable(_path, out_name);
             // TODO: Maybe we should inject the pyobject into the table instance?
 
-            return Table(out_path, out_name);
+            return Table(_path, out_name);
         }
 
     }

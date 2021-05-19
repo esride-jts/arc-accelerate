@@ -17,10 +17,12 @@
 
 #include "py_dataset.hpp"
 #include "py_accelerate.hpp"
+#include "py_workspace.hpp"
 
 #include <algorithm>
 
 namespace py = pybind11;
+namespace mg = accelerate::management;
 
 using namespace std;
 
@@ -73,14 +75,18 @@ namespace accelerate {
             }
         }
 
-        void Dataset::write(const string& out_table, const vector<string>& out_field_names)
+        void Dataset::write(const string& out_path, const string& out_table, const std::vector<mg::Field>& out_fields)
         {
+            // Create a new table
+            mg::Workspace workspace(out_path);
+
             // Use an insert cursor to write all records into the table
+            /*
             py::object da = py::module::import("arcpy.da");
             py::object InsertCursor = da.attr("InsertCursor");
             vector<size_t> field_indices;
             vector<string> validated_out_field_names;
-            for (const string& out_field_name : out_field_names)
+            for (const mg::Field& out_field : out_fields)
             {
                 auto field_pos = find(_field_names.begin(), _field_names.end(), out_field_name);
                 if (_field_names.end() != field_pos)
@@ -105,6 +111,7 @@ namespace accelerate {
                 
                 insert_cursor.attr("insertRow")(values);
             }
+            */
         }
 
         py::object Dataset::to_pandas() const

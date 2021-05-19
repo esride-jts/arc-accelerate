@@ -48,7 +48,7 @@ PYBIND11_MODULE(accelerate, m) {
             });
 
     py::class_<mg::Workspace>(m, "Workspace")
-        .def(py::init<>())
+        .def(py::init<string>())
         .def("create_table", &mg::Workspace::create_table, "Creates a new table by using the specified path.")
         .def("__repr__",
             [] (const mg::Workspace&)

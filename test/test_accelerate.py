@@ -32,8 +32,8 @@ class TestAccelerateWorkspace(unittest.TestCase):
     def test_create_table(self):
         out_path = os.environ['accelerate_sample_gdb']
         out_table = 'Table_New'
-        workspace = Workspace()
-        table = workspace.create_table(out_path, out_table, True)
+        workspace = Workspace(out_path)
+        table = workspace.create_table(out_table, True)
         self.assertIsNotNone(table, 'The table must not be none!')
 
 

@@ -27,6 +27,10 @@ namespace pybind11 {
 }
 
 namespace accelerate {
+    namespace management {
+        class Field;
+    }
+
     namespace da {
 
         class Dataset {
@@ -34,7 +38,7 @@ namespace accelerate {
         public:
             void read(const std::string& in_table, const std::vector<std::string>& field_names, const std::string& where_clause);
 
-            void write(const std::string& out_table, const std::vector<std::string>& out_field_names);
+            void write(const std::string& out_path, const std::string& out_table, const std::vector<management::Field>& out_fields);
 
             pybind11::object to_pandas() const;
 
