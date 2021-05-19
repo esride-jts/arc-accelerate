@@ -155,7 +155,6 @@ namespace accelerate {
             new_table.add_fields(validated_out_fields);
 
             // Use an insert cursor to write all records into the table
-            /*
             py::object da = py::module::import("arcpy.da");
             py::object InsertCursor = da.attr("InsertCursor");
             py::object insert_cursor = InsertCursor(out_table, validated_out_field_names);
@@ -171,7 +170,6 @@ namespace accelerate {
                 }                
                 insert_cursor.attr("insertRow")(out_values);
             }
-            */
         }
 
         py::object Dataset::to_pandas() const
