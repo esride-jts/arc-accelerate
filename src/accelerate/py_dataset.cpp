@@ -32,6 +32,13 @@ namespace accelerate {
 
         void Dataset::read(const string& in_table, const vector<string>& field_names, const string& where_clause="1=1")
         {
+            /*
+            Datacolumn<string> string_column;
+            string_column.add_value_ref("");
+            TypedDataset t_dataset;
+            t_dataset.read<string>(in_table, string_column, where_clause);
+            */
+
             // List all fields
             py::object arcpy = py::module::import("arcpy");
             py::object ListFields = arcpy.attr("ListFields");
@@ -201,5 +208,11 @@ namespace accelerate {
             return pandas.attr("DataFrame").attr("from_dict")(rows_as_dict);
         }
 
+
+        template<typename... TValues>
+        void TypedDataset::read(const string& in_table, const Datacolumn<TValues>&... columns, const string& where_clause="1=1")
+        {            
+            Datatable<TValues...> data_table(columns...);
+        }
     }
 }

@@ -35,18 +35,66 @@ namespace accelerate {
 
         class Dataset {
 
-        public:
-            void read(const std::string& in_table, const std::vector<std::string>& field_names, const std::string& where_clause);
+            public:
+                void read(const std::string& in_table, const std::vector<std::string>& field_names, const std::string& where_clause);
 
-            void write(const std::string& out_path, const std::string& out_table, const std::vector<std::string>& out_fields);
+                void write(const std::string& out_path, const std::string& out_table, const std::vector<std::string>& out_fields);
 
-            pybind11::object to_pandas() const;
+                pybind11::object to_pandas() const;
 
-        private:
-            std::vector<management::Field> _fields;
-            std::vector<pybind11::object> _rows;
+            private:
+                std::vector<management::Field> _fields;
+                std::vector<pybind11::object> _rows;
         };
 
+
+
+        template<typename TValue>
+        class Datacolumn {
+            
+            public:
+                void set_name(const std::string& name)
+                {
+                    _name = name;
+                }
+
+                std::string name() const
+                {
+                    return _name;
+                }
+
+                void add_value(TValue value)
+                {
+                    _values.push_back(value);
+                }
+
+                void add_value_ref(const TValue& value)
+                {
+                    _values.push_back(value);
+                }
+
+            private:
+                std::vector<TValue> _values;
+                std::string _name;
+        };
+
+        template<typename... TValues>
+        class Datatable {
+
+            public:
+                Datatable(Datacolumn<TValues>... columns) : _columns(std::move(columns)...)
+                {}
+
+            private:
+                std::tuple<Datacolumn<TValues>...> _columns;
+        };
+
+        class TypedDataset {
+
+            public:
+                template<typename... TValues>
+                void read(const std::string& in_table, const Datacolumn<TValues>&... columns, const std::string& where_clause);
+        };
     }
 }
 
